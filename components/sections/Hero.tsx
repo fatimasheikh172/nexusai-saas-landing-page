@@ -77,13 +77,14 @@ export default function Hero() {
             className="relative max-w-5xl mx-auto"
           >
             <div className="glass rounded-2xl p-2 glow">
-              <div className="bg-gradient-to-br from-violet-600/20 to-blue-600/20 rounded-xl aspect-video flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-20 h-20 bg-gradient-to-r from-violet-600 to-blue-600 rounded-full mx-auto mb-4 flex items-center justify-center">
-                    <Play size={32} className="text-white" />
-                  </div>
-                  <p className="text-gray-400">Product Demo Placeholder</p>
-                </div>
+              <div className="bg-gradient-to-br from-violet-600/20 to-blue-600/20 rounded-xl aspect-video overflow-hidden">
+                <iframe
+                  className="w-full h-full"
+                  src="https://www.youtube.com/embed/HwhBHumr0jE"
+                  title="NexusAI Product Demo"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
               </div>
             </div>
           </motion.div>
