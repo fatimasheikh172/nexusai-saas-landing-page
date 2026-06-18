@@ -47,46 +47,65 @@ export default function ChatDemo() {
         }),
       });
 
+      console.log('Response status:', response.status, response.statusText);
+
       if (!response.ok) {
-        throw new Error('Failed to get response');
+        const errorText = await response.text();
+        console.error('API error:', errorText);
+        throw new Error(`API error: ${response.status}`);
       }
 
-      const reader = response.body?.getReader();
+      if (!response.body) {
+        throw new Error('Response body is empty');
+      }
+
+      const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let assistantMessage = '';
 
       setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
 
-      if (reader) {
+      try {
         while (true) {
           const { done, value } = await reader.read();
-          if (done) break;
+          if (done) {
+            console.log('Stream complete');
+            break;
+          }
 
-          const chunk = decoder.decode(value);
+          const chunk = decoder.decode(value, { stream: true });
+          console.log('Received chunk:', chunk);
           const lines = chunk.split('\n');
 
           for (const line of lines) {
             if (line.startsWith('data: ')) {
-              const data = line.slice(6);
+              const data = line.slice(6).trim();
               if (data === '[DONE]') break;
 
-              try {
-                const parsed = JSON.parse(data);
-                assistantMessage += parsed.content;
-                setMessages((prev) => {
-                  const newMessages = [...prev];
-                  newMessages[newMessages.length - 1] = {
-                    role: 'assistant',
-                    content: assistantMessage,
-                  };
-                  return newMessages;
-                });
-              } catch (e) {
-                // Skip invalid JSON
+              if (data) {
+                try {
+                  const parsed = JSON.parse(data);
+                  if (parsed.content) {
+                    assistantMessage += parsed.content;
+                    setMessages((prev) => {
+                      const newMessages = [...prev];
+                      newMessages[newMessages.length - 1] = {
+                        role: 'assistant',
+                        content: assistantMessage,
+                      };
+                      return newMessages;
+                    });
+                  }
+                } catch (e) {
+                  console.warn('Failed to parse JSON:', data, e);
+                }
               }
             }
           }
         }
+      } catch (streamError) {
+        console.error('Stream reading error:', streamError);
+        throw streamError;
       }
     } catch (error) {
       console.error('Chat error:', error);
